@@ -1,0 +1,10 @@
+$c Name{}                         - class
+$m Name(vName,o.vName){}      - class method  //o - object Number-ind v steke
+$v Name                     - int variable
+cName Name = n cName($v first, $v second, $v third)      	  - class object   // tip imya
+=                         	  - operator prisvaivaniya
+vName = i(vName1,vName2)  	  - operator sravnemiya // return int
+oName.mName()                 	  - viklik metoda na ob
+w(vName){}                	  - while(int i) // if i == 0 return
+$n                        	  - new     ; .a dd ?
+;                         	  - comment

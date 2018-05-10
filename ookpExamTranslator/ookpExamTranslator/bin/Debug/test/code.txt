@@ -1,0 +1,18 @@
+$c Class1
+{ 
+	$v ab
+	$v b
+	$v c
+	$m Met(d)
+	{ 
+		c = d 
+	} 
+}
+
+$v var1 = 2;var1 = 2
+Class1 cls = $n Class1(1,1)
+cls.Met1()
+w(var1)
+{ 
+	var1 = 0 
+}

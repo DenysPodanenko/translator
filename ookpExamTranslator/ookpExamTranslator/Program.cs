@@ -96,6 +96,7 @@ namespace ookpExamTranslator
                         List<string> asmFile = new List<string>();
                         asmFile.Add("format PE GUI");
                         asmFile.Add("entry start");
+                        if(true)Console.WriteLine("Hello my friend");
                         asmFile.AddRange(classParser(massFile));
                 }
                 
@@ -108,3 +109,6 @@ namespace ookpExamTranslator
         }
     }
 }
+
+
+//hello denys

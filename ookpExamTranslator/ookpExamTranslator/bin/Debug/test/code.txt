@@ -1,18 +1,21 @@
-$c Class1
-{ 
+$c class1   ;class class1
+{
 	$v ab
 	$v b
 	$v c
-	$m Met(d)
+	$m Met(d) ;method Met
 	{ 
 		c = d 
+		$v f = 2 ;f=2
+		c = f
 	} 
 }
 
 $v var1 = 2;var1 = 2
-Class1 cls = $n Class1(1,1)
-cls.Met1()
+class1 cls = $n class1 ;new class cls
+cls.Met1(2)
 w(var1)
 { 
+	$v var3 = 2;
 	var1 = 0 
 }

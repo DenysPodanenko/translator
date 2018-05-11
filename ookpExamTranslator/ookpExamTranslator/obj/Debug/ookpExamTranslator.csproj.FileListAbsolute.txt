@@ -4,3 +4,9 @@ C:\Users\Den\Desktop\dima\ookpExamTranslator\ookpExamTranslator\bin\Debug\ookpEx
 C:\Users\Den\Desktop\dima\ookpExamTranslator\ookpExamTranslator\bin\Debug\ookpExamTranslator.pdb
 C:\Users\Den\Desktop\dima\ookpExamTranslator\ookpExamTranslator\obj\Debug\ookpExamTranslator.exe
 C:\Users\Den\Desktop\dima\ookpExamTranslator\ookpExamTranslator\obj\Debug\ookpExamTranslator.pdb
+C:\Users\Dmitry\Desktop\OOKP_EX\dima\ookpExamTranslator\ookpExamTranslator\bin\Debug\test\translator\ookpExamTranslator\ookpExamTranslator\bin\Debug\ookpExamTranslator.exe.config
+C:\Users\Dmitry\Desktop\OOKP_EX\dima\ookpExamTranslator\ookpExamTranslator\bin\Debug\test\translator\ookpExamTranslator\ookpExamTranslator\bin\Debug\ookpExamTranslator.exe
+C:\Users\Dmitry\Desktop\OOKP_EX\dima\ookpExamTranslator\ookpExamTranslator\bin\Debug\test\translator\ookpExamTranslator\ookpExamTranslator\bin\Debug\ookpExamTranslator.pdb
+C:\Users\Dmitry\Desktop\OOKP_EX\dima\ookpExamTranslator\ookpExamTranslator\bin\Debug\test\translator\ookpExamTranslator\ookpExamTranslator\obj\Debug\ookpExamTranslator.csprojResolveAssemblyReference.cache
+C:\Users\Dmitry\Desktop\OOKP_EX\dima\ookpExamTranslator\ookpExamTranslator\bin\Debug\test\translator\ookpExamTranslator\ookpExamTranslator\obj\Debug\ookpExamTranslator.exe
+C:\Users\Dmitry\Desktop\OOKP_EX\dima\ookpExamTranslator\ookpExamTranslator\bin\Debug\test\translator\ookpExamTranslator\ookpExamTranslator\obj\Debug\ookpExamTranslator.pdb

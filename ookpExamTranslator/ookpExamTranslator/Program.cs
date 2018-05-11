@@ -48,27 +48,124 @@ namespace ookpExamTranslator
 
     class Program
     {
+        public static List<string> dataList = new List<string>();
         public static List<string> classParser(string[] massFile)
         {
             List<string> classSection = new List<string>();
             string com = "";
-            for (int i=0;i<massFile.Length;i++)
+            int kl_class = 0;
+            for (int i=0; i<massFile.Length; i++)
+            { if (Regex.Match(massFile[i], @"^\$c\s+([a-zA-z0-9]+)\s*(\;*(.*))$").Length > 0) kl_class++; }
+            if(kl_class > 0)
             {
-                if (Regex.Match(massFile[i],@"^\$c\s+(.*)$").Length > 0)
+                for (int i = 0; i < massFile.Length; i++)
                 {
-                    //Match match = Regex.Match(massFile[i], @"^\$c\s+(.*)$");
-                    //var com1 = match.Groups[1].Value;
-                    com = "struct "+ Regex.Match(massFile[i], @"^\$c\s+(.*)$").Groups[1].Value.ToString();
+                    if (Regex.Match(massFile[i], @"^\$c\s+([a-zA-z0-9]+)\s*(\;*(.*))$").Length > 0)
+                    {
+                        //Match match = Regex.Match(massFile[i], @"^\$c\s+(.*)$");
+                        Match match = Regex.Match(massFile[i], @"^\$c\s+([a-zA-z0-9]+)\s*(\;*(.*))$");
+                        string comment = ""; if (match.Groups[2].Length != 0) comment = match.Groups[2].Value.ToString();
+                        if(comment.Length == 0)com = "struct " + match.Groups[1].Value.ToString();
+                        else com = "struct " + match.Groups[1].Value.ToString() + comment;
+                        classSection.Add(com);classSection.Add("{");
+                        List<string> classOpNames = new List<string>();
+                        for(i+=2; i<massFile.Length && Regex.Match(massFile[i], @"^\}+(.*)$").Length == 0; i++)
+                        {
+                            if (Regex.Match(massFile[i], @"^[\s\t]*\$v\s+([a-zA-Z0-9]+)\s*\=*\s*([0-9]*)\s*(\;*(.*))$").Length > 0)
+                            {
+                                Match match1 = Regex.Match(massFile[i], @"^[\s\t]*\$v\s+([a-zA-Z0-9]+)\s*\=*\s*([0-9]*)\s*(\;*(.*))$");
+                                string name_pr = "";
+                                classOpNames.Add(match1.Groups[1].Value.ToString());
+                                name_pr = '.' + match1.Groups[1].Value.ToString() + " dd ";
+                                if (match1.Groups[2].Length > 0) name_pr += match1.Groups[2].Value.ToString();
+                                else name_pr += '?';
+                                if (match1.Groups[3].Length > 0) name_pr += match1.Groups[3].Value.ToString();
+                                classSection.Add(name_pr);
+                            }
+                            else if (Regex.Match(massFile[i], @"^[\s\t]*\$m\s+([a-zA-Z0-9]+)\([a-zA-Z\.]+(,[a-zA-Z])*\)\s*(\;*.*)$").Length > 0)
+                            {
+                                Match match1 = Regex.Match(massFile[i], @"^[\s\t]*\$m\s+([a-zA-Z0-9]+)\(([a-zA-Z\.]+)*\)\s*(\;*.*)$");
+                                string name_meth = "", name_per = "";
+                                name_meth = '.' + match1.Groups[1].Value.ToString() + ":";
+                                if (match1.Groups[3].Length > 0) name_meth += match1.Groups[3].Value.ToString();
+                                if (match1.Groups[2].Length > 0) name_per += match1.Groups[2].Value.ToString();
+                                classSection.Add(name_meth);
+                                classSection.Add("push ebp");
+                                classSection.Add("mov ebp, esp");
+                                if (name_per.Length > 0){classSection.Add("mov eax,[ebp+8]");}
+                                for(i+=2; i < massFile.Length && Regex.Match(massFile[i], @"^\s*\t*\}+(.*)$").Length == 0; i++)
+                                {
+                                    if (Regex.Match(massFile[i], @"^[\s\t]*\$v\s+([a-zA-Z0-9]+)\s*\=*\s*([0-9]*)\s*(\;*(.*))$").Length > 0)
+                                    {
+                                        Match match2 = Regex.Match(massFile[i], @"^[\s\t]*\$v\s+([a-zA-Z0-9]+)\s*\=*\s*([0-9]*)\s*(\;*(.*))$");
+                                        string name_pr1 = "";
+                                        name_pr1 = match2.Groups[1].Value.ToString() + " dd ";
+                                        if (match2.Groups[2].Length > 0) name_pr1 += match2.Groups[2].Value.ToString();
+                                        else name_pr1 += '?';
+                                        if (match2.Groups[3].Length > 0) name_pr1 += match2.Groups[3].Value.ToString();
+                                        classSection.Add(name_pr1);
+                                    }
+                                    else if (Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9]+)\s*\=+\s*([a-zA-Z0-9]+)\s*(\;*.*)$").Length > 0)
+                                    {
+                                        string name1 = "", name2 = "", str = massFile[i];
+                                        int j = 0;
+                                        for (; j < str.Length && (str[j] == ' ' || str[j] == '\t'); j++) ;
+                                        for (; j < str.Length && char.IsLetterOrDigit(str[j]); j++) name1+=str[j];
+                                        for (; j < str.Length && (str[j] == ' ' || str[j] == '\t'); j++) ;j++;for (; j < str.Length && str[j] == ' '; j++) ;
+                                        for (; j < str.Length && char.IsLetterOrDigit(str[j]); j++) name2 += str[j];
+                                        string stroka = "mov ";
+                                        int naid = 0;
+                                        foreach(string n in classOpNames) { if (n == name1) naid++; }
+                                        if (name_per == name1) stroka += "eax, ";
+                                        else if (naid > 0) stroka = stroka + "[." + name1 + "], ";
+                                        else stroka = stroka + "[" + name1 + "], ";
+                                        naid = 0;
+                                        foreach (string n in classOpNames) { if (n == name2) naid++; }
+                                        if (name_per == name2) stroka += "eax";
+                                        else if (naid > 0) stroka = stroka + "[." + name2 + "]";
+                                        else stroka = stroka + "[" + name2 + "]";
+                                        classSection.Add(stroka);
+                                    }
+                                }
+                                classSection.Add("pop ebp");
+                                classSection.Add("ret 12");
+                            }
+                        }
+                        classSection.Add("}");
+                        classOpNames.Clear();
+                    }
                 }
-                if (Regex.Match(massFile[i], @"^[\s\t]*\$m\s+([a-zA-Z0-9]+)\([a-zA-Z\.]+(,[a-zA-Z])*\)$").Length > 0)
-                {
-                    Match match = Regex.Match(massFile[i], @"^[\s\t]*\$m\s+([a-zA-Z0-9])\([a-zA-Z\.]+(,[a-zA-Z])*\)$");
-                    var com1 = match.Groups[1].Value;
-                    com = Regex.Match(massFile[i], @"^\$c\s+(.*)$").Groups[1].Value.ToString();
-                }
-
             }
+            for (int i = 0; i < massFile.Length; i++)
+            {
+                if (Regex.Match(massFile[i], @"^\$c\s+([a-zA-z0-9]+)\s*(\;*(.*))$").Length > 0)
+                {
 
+                    for (i += 2; i < massFile.Length && Regex.Match(massFile[i], @"^\}+(.*)$").Length == 0; i++)
+                    {
+                        
+                    }
+                }
+                if (Regex.Match(massFile[i], @"^[\s\t]*\$v\s+([a-zA-Z0-9]+)\s*\=*\s*([0-9]*)\s*(\;*(.*))$").Length > 0)
+                {
+                    Match match1 = Regex.Match(massFile[i], @"^[\s\t]*\$v\s+([a-zA-Z0-9]+)\s*\=*\s*([0-9]*)\s*(\;*(.*))$");
+                    string name_pr = "";
+                    name_pr = '.' + match1.Groups[1].Value.ToString() + " dd ";
+                    if (match1.Groups[2].Length > 0) name_pr += match1.Groups[2].Value.ToString();
+                    else name_pr += '?';
+                    if (match1.Groups[3].Length > 0) name_pr += match1.Groups[3].Value.ToString();
+                    dataList.Add(name_pr);
+                }
+                if (Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9]+)\s*([a-zA-Z0-9]+)\s*\=+\s*\$n\s*([a-zA-Z0-9]+)\s*(\;*(.*))$").Length > 0)
+                {
+                    Match match1 = Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9]+)\s*([a-zA-Z0-9]+)\s*\=+\s*\$n\s*([a-zA-Z0-9]+)\s*(\;*(.*))$");
+                    string name_pr = "";
+                    name_pr += match1.Groups[2].Value.ToString();
+                    name_pr = name_pr + ' ' + match1.Groups[1].Value.ToString();
+                    if (match1.Groups[4].Length > 0) name_pr += match1.Groups[4].Value.ToString();
+                    dataList.Add(name_pr);
+                }
+            }
             return classSection;
         }
 
@@ -78,25 +175,29 @@ namespace ookpExamTranslator
             string namefile = Directory.GetCurrentDirectory() + '\\';
             //Console.WriteLine(namefile);
             Console.Write("Please, input directory name: ");
-            string directory = Console.ReadLine();
+            string directory = "test";//Console.ReadLine();
             namefile = namefile + directory + '\\';
             Console.Write("Please, input file name: ");
-            directory = Console.ReadLine();
+            directory = "code.txt";//Console.ReadLine();
             namefile = namefile + directory;
             //Console.WriteLine(namefile);
             try
             {
-                    ReadFromFile reader = new ReadFromFile(namefile);
-                    int size = reader.sizemass();
-                    if (size != -1)
-                    {
-                        string[] massFile = new string[size];
-                        massFile = reader.ReturnMass();
-
-                        List<string> asmFile = new List<string>();
-                        asmFile.Add("format PE GUI");
-                        asmFile.Add("entry start");
-                        asmFile.AddRange(classParser(massFile));
+                ReadFromFile reader = new ReadFromFile(namefile);
+                int size = reader.sizemass();
+                if (size != -1)
+                {
+                    string[] massFile = new string[size];
+                    massFile = reader.ReturnMass();
+                    List<string> asmFile = new List<string>();
+                    asmFile.Add("format PE GUI");
+                    asmFile.Add("entry start");
+                    asmFile.AddRange(classParser(massFile));
+                    asmFile.Add("");
+                    asmFile.Add("section '.data' data readable writeable ");
+                    foreach (string n in dataList) asmFile.Add(n);
+                    asmFile.Add("");
+                    asmFile.Add("section '.code' code readable executable");
                 }
                 
             }

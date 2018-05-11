@@ -1,6 +1,6 @@
 # translator
 
-Input directory : test
-Input file name : code.txt
+Input directory : test \n
+Input file      : code.txt \n
 --------------------------
 Result          : res.asm

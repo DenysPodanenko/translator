@@ -14,7 +14,7 @@ $c class1   ;class class1
 $v var1 = 2;var1 = 2
 class1 cls = $n class1 ;new class cls
 cls.Met1(2)
-w(var1)
+w1(var1) ;while loop
 { 
 	$v var3 = 2;
 	var1 = 0 

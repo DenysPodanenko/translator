@@ -49,6 +49,8 @@ namespace ookpExamTranslator
     class Program
     {
         public static List<string> dataList = new List<string>();
+        public static List<string> codeSection = new List<string>();
+        public static List<string> loopSection = new List<string>();
         public static List<string> classParser(string[] massFile)
         {
             List<string> classSection = new List<string>();
@@ -56,6 +58,8 @@ namespace ookpExamTranslator
             int kl_class = 0;
             for (int i=0; i<massFile.Length; i++)
             { if (Regex.Match(massFile[i], @"^\$c\s+([a-zA-z0-9]+)\s*(\;*(.*))$").Length > 0) kl_class++; }
+
+            //class regocnition
             if(kl_class > 0)
             {
                 for (int i = 0; i < massFile.Length; i++)
@@ -136,15 +140,15 @@ namespace ookpExamTranslator
                     }
                 }
             }
+
+            // .data section recognition
             for (int i = 0; i < massFile.Length; i++)
             {
                 if (Regex.Match(massFile[i], @"^\$c\s+([a-zA-z0-9]+)\s*(\;*(.*))$").Length > 0)
                 {
-
-                    for (i += 2; i < massFile.Length && Regex.Match(massFile[i], @"^\}+(.*)$").Length == 0; i++)
-                    {
-                        
-                    }
+                    massFile[i] = ""; massFile[i+1] = "";
+                    for (i += 2; i < massFile.Length && Regex.Match(massFile[i], @"^\}+(.*)$").Length == 0; i++){massFile[i] = "";}
+                    massFile[i] = "";
                 }
                 if (Regex.Match(massFile[i], @"^[\s\t]*\$v\s+([a-zA-Z0-9]+)\s*\=*\s*([0-9]*)\s*(\;*(.*))$").Length > 0)
                 {
@@ -154,6 +158,7 @@ namespace ookpExamTranslator
                     if (match1.Groups[2].Length > 0) name_pr += match1.Groups[2].Value.ToString();
                     else name_pr += '?';
                     if (match1.Groups[3].Length > 0) name_pr += match1.Groups[3].Value.ToString();
+                    massFile[i] = "";
                     dataList.Add(name_pr);
                 }
                 if (Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9]+)\s*([a-zA-Z0-9]+)\s*\=+\s*\$n\s*([a-zA-Z0-9]+)\s*(\;*(.*))$").Length > 0)
@@ -163,7 +168,57 @@ namespace ookpExamTranslator
                     name_pr += match1.Groups[2].Value.ToString();
                     name_pr = name_pr + ' ' + match1.Groups[1].Value.ToString();
                     if (match1.Groups[4].Length > 0) name_pr += match1.Groups[4].Value.ToString();
+                    massFile[i] = "";
                     dataList.Add(name_pr);
+                }
+            }
+
+            //.code section recognition
+            for(int i=0; i<massFile.Length; i++)
+            {
+                if (Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9\.]+)\(+\s*([a-zA-Z0-9]*)\s*\)+\s*(\;*(.*))$").Length > 0 &&
+                    Regex.Match(massFile[i], @"^\s*\t*([a-zA-Z0-9]+)\.+([a-zA-Z0-9]+)\(+(.*)$").Length > 0)
+                {
+                    Match match1 = Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9\.]+)\(+\s*([a-zA-Z0-9]*)\s*\)+\s*(\;*(.*))$");
+                    string zn = "", stroka = "";
+                    if(match1.Groups[2].Length > 0) { zn = "push " + match1.Groups[2].Value.ToString(); codeSection.Add(zn); }
+                    stroka = "call " + match1.Groups[1].Value.ToString();
+                    if(match1.Groups[3].Length > 0) { stroka += match1.Groups[3].Value.ToString(); }
+                    codeSection.Add(stroka);
+                }
+                if(Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9]+)\(+\s*([a-zA-Z0-9]+)\s*\)+\s*(\;*(.*))$").Length > 0)
+                {
+                    Match match1 = Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9]+)\(+\s*([a-zA-Z0-9]+)\s*\)+\s*(\;*(.*))$");
+                    string nazv = match1.Groups[1].Value.ToString();
+                    string zn = match1.Groups[2].Value.ToString();
+                    string comm = "";
+                    if (match1.Groups[3].Length > 0) comm += match1.Groups[3].Value.ToString();
+                    string code_sec = "if " + zn + " eq 1"; codeSection.Add(code_sec);
+                    code_sec = "goto " + nazv; codeSection.Add(code_sec);
+                    code_sec = "end if"; codeSection.Add(code_sec);
+
+                    code_sec = nazv + ":"; loopSection.Add(code_sec);
+                    for (i += 2; i < massFile.Length && Regex.Match(massFile[i], @"^\s*\t*\}+(.*)$").Length == 0; i++)
+                    {
+                        if (Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9\.]+)\s*\=+\s*([0-9]+)\s*(\;*(.*))$").Length > 0)
+                        {
+                            Match match2 = Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9\.]+)\s*\=+\s*([0-9]+)\s*(\;*(.*))$");
+                            string stroka1 = "mov [" + match2.Groups[1].Value.ToString() + "], " + match2.Groups[2].Value.ToString();
+                            if (match2.Groups[3].Length > 0) stroka1 += match2.Groups[3].Value.ToString();
+                            loopSection.Add(stroka1);
+                        }
+                        else if (Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9\.]+)\s*\=+\s*([a-zA-Z0-9\.]+)\s*(\;*(.*))$").Length > 0)
+                        {
+                            Match match2 = Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9\.]+)\s*\=+\s*([a-zA-Z0-9\.]+)\s*(\;*(.*))$");
+                            string stroka1 = "mov [" + match2.Groups[1].Value.ToString() + "], [" + match2.Groups[2].Value.ToString() + "]";
+                            if (match2.Groups[3].Length > 0) stroka1 += match2.Groups[3].Value.ToString();
+                            loopSection.Add(stroka1);
+                        }
+                    }
+                    code_sec = "mov ecx, [" + zn + "]";loopSection.Add(code_sec);
+                    code_sec = "if ecx eq 1";loopSection.Add(code_sec);
+                    code_sec = "loop " + nazv;loopSection.Add(code_sec);
+                    code_sec = "end if";loopSection.Add(code_sec);
                 }
             }
             return classSection;
@@ -198,7 +253,9 @@ namespace ookpExamTranslator
                     foreach (string n in dataList) asmFile.Add(n);
                     asmFile.Add("");
                     asmFile.Add("section '.code' code readable executable");
-                    //
+                    foreach (string n in codeSection) asmFile.Add(n);
+                    foreach (string n in loopSection) asmFile.Add(n);
+                    //asmFile list is ready to be written to a file
                 }
                 
             }

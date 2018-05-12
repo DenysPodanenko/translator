@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace ookpExamTranslator
 {
@@ -70,7 +71,7 @@ namespace ookpExamTranslator
                         Match match = Regex.Match(massFile[i], @"^\$c\s+([a-zA-z0-9]+)\s*(\;*(.*))$");
                         string comment = ""; if (match.Groups[2].Length != 0) comment = match.Groups[2].Value.ToString();
                         if(comment.Length == 0)com = "struct " + match.Groups[1].Value.ToString();
-                        else com = "struct " + match.Groups[1].Value.ToString() + comment;
+                        else com = "struc " + match.Groups[1].Value.ToString() + comment;
                         classSection.Add(com);classSection.Add("{");
                         List<string> classOpNames = new List<string>();
                         for(i+=2; i<massFile.Length && Regex.Match(massFile[i], @"^\}+(.*)$").Length == 0; i++)
@@ -127,7 +128,7 @@ namespace ookpExamTranslator
                                         foreach (string n in classOpNames) { if (n == name2) naid++; }
                                         if (name_per == name2) stroka += "eax";
                                         else if (naid > 0) stroka = stroka + "[." + name2 + "]";
-                                        else stroka = stroka + "[" + name2 + "]";
+                                        else stroka = stroka + name2;
                                         classSection.Add(stroka);
                                     }
                                 }
@@ -154,7 +155,7 @@ namespace ookpExamTranslator
                 {
                     Match match1 = Regex.Match(massFile[i], @"^[\s\t]*\$v\s+([a-zA-Z0-9]+)\s*\=*\s*([0-9]*)\s*(\;*(.*))$");
                     string name_pr = "";
-                    name_pr = '.' + match1.Groups[1].Value.ToString() + " dd ";
+                    name_pr = match1.Groups[1].Value.ToString() + " dd ";
                     if (match1.Groups[2].Length > 0) name_pr += match1.Groups[2].Value.ToString();
                     else name_pr += '?';
                     if (match1.Groups[3].Length > 0) name_pr += match1.Groups[3].Value.ToString();
@@ -232,6 +233,7 @@ namespace ookpExamTranslator
             Console.Write("Please, input directory name: ");
             string directory = "test";//Console.ReadLine();
             namefile = namefile + directory + '\\';
+            string output_dir = namefile + "fasm";
             Console.Write("Please, input file name: ");
             directory = "code.txt";//Console.ReadLine();
             namefile = namefile + directory;
@@ -253,11 +255,23 @@ namespace ookpExamTranslator
                     foreach (string n in dataList) asmFile.Add(n);
                     asmFile.Add("");
                     asmFile.Add("section '.code' code readable executable");
+                    asmFile.Add("start:");
                     foreach (string n in codeSection) asmFile.Add(n);
                     foreach (string n in loopSection) asmFile.Add(n);
+
                     //asmFile list is ready to be written to a file
+                    StreamWriter sw = new StreamWriter("test\\fasm\\res.asm", false);
+                    foreach (string n in asmFile) sw.WriteLine(n);
+                    sw.Close();
+
+                    Process p = new Process();
+                    p.StartInfo.WorkingDirectory = output_dir;
+                    p.StartInfo.FileName = "FASM.exe";
+                    p.StartInfo.Arguments = "res.asm";
+                    p.Start();
+
                 }
-                
+
             }
             catch
             {

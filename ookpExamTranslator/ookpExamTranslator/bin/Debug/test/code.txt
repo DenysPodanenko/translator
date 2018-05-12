@@ -3,7 +3,7 @@ $c class1   ;class class1
 	$v ab
 	$v b
 	$v c
-	$m Met(d) ;method Met
+	$m Met1(d) ;method Met1
 	{ 
 		c = d 
 		$v f = 2 ;f=2

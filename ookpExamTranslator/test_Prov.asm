@@ -36,8 +36,8 @@ section '.code' code readable executable
                 end if
 
         push    0
-       ; push    _caption
-        push    cls.VarClass3
+        push    _caption
+        ;push    cls.VarClass3
         push    _message
         push    0
         call    [MessageBoxA]

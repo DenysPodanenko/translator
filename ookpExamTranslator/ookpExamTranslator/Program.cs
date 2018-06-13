@@ -143,6 +143,8 @@ namespace ookpExamTranslator
             }
 
             // .data section recognition
+            dataList.Add("_caption db 'Win32 assembly program', 0");
+            dataList.Add("_message db 200 dup 0");
             for (int i = 0; i < massFile.Length; i++)
             {
                 if (Regex.Match(massFile[i], @"^\$c\s+([a-zA-z0-9]+)\s*(\;*(.*))$").Length > 0)
@@ -221,6 +223,28 @@ namespace ookpExamTranslator
                     code_sec = "loop " + nazv;loopSection.Add(code_sec);
                     code_sec = "end if";loopSection.Add(code_sec);
                 }
+                if(Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9]+)\(+\s*([a-zA-Z0-9.]+)\s*\)+\s*(\;*(.*))$").Length > 0)
+                {
+                    Match match1 = Regex.Match(massFile[i], @"^[\s\t]*([a-zA-Z0-9]+)\(+\s*([a-zA-Z0-9.]+)\s*\)+\s*(\;*(.*))$");
+                    string zn = "", stroka = "";
+                    if (match1.Groups[1].Length > 0 && match1.Groups[1].Value == "print")
+                    {
+                        //zn = "push " + match1.Groups[2].Value.ToString();
+                        codeSection.Add("push 0");
+                        codeSection.Add("push _caption");
+                        codeSection.Add("mov eax, [" + match1.Groups[2].Value + "]");
+                        codeSection.Add("add al, '0'");
+                        codeSection.Add("mov [_message], al");
+                        codeSection.Add("push _message");
+                        codeSection.Add("push 0");
+                        codeSection.Add("call[MessageBoxA]");
+                    }
+                    //stroka = "call " + match1.Groups[1].Value.ToString();
+                    //if (match1.Groups[3].Length > 0) { stroka += match1.Groups[3].Value.ToString(); }
+                    //codeSection.Add(stroka);
+                }
+
+
             }
             return classSection;
         }
@@ -258,6 +282,24 @@ namespace ookpExamTranslator
                     asmFile.Add("start:");
                     foreach (string n in codeSection) asmFile.Add(n);
                     foreach (string n in loopSection) asmFile.Add(n);
+
+                    asmFile.Add("section '.idata' import data readable writeable");
+                    asmFile.Add("dd 0,0,0,RVA kernel_name,RVA kernel_table");
+                    asmFile.Add("dd 0,0,0,RVA user_name,RVA user_table");
+                    asmFile.Add("dd 0,0,0,0,0");
+                    asmFile.Add("kernel_table:");
+                    asmFile.Add("ExitProcess dd RVA _ExitProcess");
+                    asmFile.Add("dd 0");
+                    asmFile.Add("user_table:");
+                    asmFile.Add("MessageBoxA dd RVA _MessageBoxA");
+                    asmFile.Add("dd 0");
+                    asmFile.Add("kernel_name db 'KERNEL32.DLL',0");
+                    asmFile.Add("user_name db 'USER32.DLL',0");
+                    asmFile.Add("_ExitProcess dw 0");
+                    asmFile.Add("db 'ExitProcess',0");
+                    asmFile.Add("_MessageBoxA dw 0");
+                    asmFile.Add("db 'MessageBoxA',0");
+                    asmFile.Add("section '.reloc' fixups data readable discardable");
 
                     //asmFile list is ready to be written to a file
                     StreamWriter sw = new StreamWriter("test\\fasm\\res.asm", false);
